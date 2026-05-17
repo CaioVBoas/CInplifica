@@ -9,6 +9,7 @@ lerna-debug.log*
 
 # Documentos locais de projeto
 PROGRESS.md
+GEMINI.md
 
 # Dependências
 node_modules
