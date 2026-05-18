@@ -6,7 +6,7 @@ import prisma from '../services/prisma';
 const CIN_SSO_CLIENT_ID = process.env.CIN_SSO_CLIENT_ID || 'placeholder';
 const CIN_SSO_CLIENT_SECRET = process.env.CIN_SSO_CLIENT_SECRET || 'placeholder';
 const CIN_SSO_ISSUER = process.env.CIN_SSO_ISSUER || 'https://sso.cin.ufpe.br';
-const CALLBACK_URL = process.env.CALLBACK_URL || 'http://localhost:3001/api/auth/callback';
+const CALLBACK_URL = process.env.CALLBACK_URL || 'http://localhost:3011/api/auth/callback';
 
 passport.use(
   'cin-sso',

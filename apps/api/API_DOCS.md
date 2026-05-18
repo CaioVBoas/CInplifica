@@ -1,7 +1,7 @@
 # API Documentation - CInplifica
 
 ## Base URL
-`http://localhost:3001/api`
+`http://localhost:3011/api`
 
 ## Authentication
 The API uses **CIn-SSO** (OpenID Connect) for authentication.
@@ -130,7 +130,7 @@ Internal callback for CIn-SSO. Redirects to frontend with token.
 
 ## WebSockets (Real-time)
 
-**Connection URL:** `ws://localhost:3001`
+**Connection URL:** `ws://localhost:3011`
 
 ### Client -> Server Events
 

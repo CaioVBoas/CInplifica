@@ -46,7 +46,7 @@ echo "⏳ Waiting for PostgreSQL to be ready..."
 # We use a simple loop to wait for the port to be open
 MAX_RETRIES=30
 RETRY_COUNT=0
-while ! nc -z localhost 5432; do
+while ! nc -z localhost 5431; do
   RETRY_COUNT=$((RETRY_COUNT + 1))
   if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
     echo "❌ Error: Database did not start in time."

@@ -41,7 +41,7 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     if (!token) return;
 
-    const newSocket = io('http://localhost:3001', {
+    const newSocket = io('http://localhost:3011', {
       auth: { token },
       transports: ['websocket'],
     });
