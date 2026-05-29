@@ -18,7 +18,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing }) => {
   const categoryColors = {
     SALE: 'bg-green-100 text-green-800',
     LOST_FOUND: 'bg-orange-100 text-orange-800',
-    ACADEMIC: 'bg-blue-100 text-blue-800',
+    ACADEMIC: 'bg-red-100 text-red-800',
   };
 
   const categoryLabels = {
@@ -51,7 +51,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing }) => {
         <p className="text-sm text-gray-600 mb-4 line-clamp-2 flex-grow">{listing.description}</p>
         
         <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
-          <div className="text-lg font-bold text-blue-600">
+          <div className="text-lg font-bold text-red-600">
             {listing.category === 'SALE' ? formatPrice(listing.price) : 'Grátis/Troca'}
           </div>
         </div>
