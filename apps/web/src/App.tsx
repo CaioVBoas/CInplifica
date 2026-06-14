@@ -14,11 +14,11 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm sticky top-0 z-50">
+    <header className="bg-red-600 shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
         <Link to="/" className="flex items-center gap-2 group">
-          <h1 className="text-2xl font-bold text-blue-600 group-hover:text-blue-700 transition-colors">CInplifica</h1>
-          <span className="hidden sm:inline text-sm text-gray-500 font-medium">| Comunidade CIn-UFPE</span>
+          <h1 className="text-2xl font-extrabold text-white group-hover:text-black transition-colors">CInplifica</h1>
+          <span className="hidden sm:inline text-sm text-white font-medium">| Uma comunidade CIn </span>
         </Link>
         
         <div className="flex items-center gap-2 sm:gap-4">
@@ -34,7 +34,7 @@ const Header: React.FC = () => {
               
               <Link 
                 to="/chat" 
-                className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all"
+                className="p-2 text-white hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
                 title="Mensagens"
               >
                 <MessageSquare size={22} />
@@ -42,8 +42,8 @@ const Header: React.FC = () => {
 
               <div className="h-8 w-px bg-gray-200 hidden sm:block mx-1"></div>
 
-              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+              <div className="flex items-center gap-2 text-sm font-medium text-white">
+                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600">
                   <UserIcon size={18} />
                 </div>
                 <span className="hidden sm:inline">{user.name}</span>
@@ -51,7 +51,7 @@ const Header: React.FC = () => {
               
               <button
                 onClick={logout}
-                className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                className="p-2 text-white hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
                 title="Sair"
               >
                 <LogOut size={18} />
@@ -60,10 +60,10 @@ const Header: React.FC = () => {
           ) : (
             <button
               onClick={handleLogin}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm"
+              className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors shadow-sm"
             >
               <LogIn size={18} />
-              <span>Entrar com CIn-SSO</span>
+              <span>Entrar com seu email do CIn</span>
             </button>
           )}
         </div>
@@ -80,7 +80,7 @@ const Home: React.FC = () => {
           Mural da Comunidade
         </h2>
         <p className="mt-3 text-xl text-gray-500 sm:mt-4">
-          Encontre o que você precisa ou anuncie para seus colegas do CIn.
+          Encontre o que você perdeu, compre novos itens ou anuncie para seus colegas do CIn: a comunidade é toda sua!
         </p>
       </section>
       <ListingsFeed />
@@ -116,7 +116,7 @@ const AuthSuccess: React.FC = () => {
 
 const AppContent: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-amber-50">
       <Header />
       <Routes>
         <Route path="/" element={<Home />} />

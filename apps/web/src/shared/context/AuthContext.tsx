@@ -21,7 +21,19 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+
+  // const [user, setUser] = useState<User | null>({
+  //   id: '1',
+  //   name: 'Daniel',
+  //   email: 'daniel@cin.ufpe.br',
+  //   role: 'STUDENT',
+  // });
+
+  // const [token, setToken] = useState<string | null>('fake-token');
+  
   const [loading, setLoading] = useState(true);
+  // const [loading, setLoading] = useState(false);
+
 
   useEffect(() => {
     if (token) {
