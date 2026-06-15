@@ -11,6 +11,7 @@ lerna-debug.log*
 PROGRESS.md
 GEMINI.md
 .maestri
+.antigravitycli
 
 # Dependências
 node_modules
