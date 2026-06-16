@@ -4,6 +4,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  picture?: string;
   role: string;
   status?: string;
 }
@@ -38,19 +39,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     if (token) {
-      // Decode JWT or fetch user profile from API
-      // For now, let's assume we can decode or we fetch it
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUser({
-          id: payload.id,
-          name: payload.name,
-          email: payload.email,
-          role: payload.role,
-          status: payload.status,
-        });
+        const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+        const payload = JSON.parse(atob(base64));
+        if (payload.exp && Date.now() / 1000 > payload.exp) {
+          logout();
+        } else {
+          setUser({
+            id: payload.id,
+            name: payload.name,
+            email: payload.email,
+            picture: payload.picture ?? undefined,
+            role: payload.role,
+            status: payload.status,
+          });
+        }
       } catch (e) {
-        console.error('Failed to decode token', e);
         logout();
       }
     }

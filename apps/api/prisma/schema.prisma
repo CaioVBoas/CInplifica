@@ -11,6 +11,7 @@ model User {
   id            String         @id @default(uuid())
   email         String         @unique
   name          String
+  picture       String?
   role          String
   status        String         @default("ACTIVE")
   suspendedAt   DateTime?
