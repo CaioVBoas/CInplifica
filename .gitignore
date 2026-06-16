@@ -18,6 +18,8 @@ node_modules
 dist
 dist-ssr
 *.local
+uploads/
+apps/api/uploads/
 
 # Editor de código
 .vscode/*

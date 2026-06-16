@@ -17,6 +17,14 @@ else
   echo "✅ apps/api/.env already exists."
 fi
 
+if [ ! -f apps/web/.env ]; then
+  echo "apps/web/.env not found. Creating from .env.example..."
+  cp apps/web/.env.example apps/web/.env
+  echo "apps/web/.env created. Please review it if you have custom settings."
+else
+  echo "apps/web/.env already exists."
+fi
+
 # 2. Dependency Installation
 echo "📦 Installing dependencies..."
 npm install
