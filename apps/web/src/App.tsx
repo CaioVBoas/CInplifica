@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate, useLocation, Link } from 'react-router-dom';
+import React, { useEffect, useRef } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation, Link } from 'react-router-dom';
 import ListingsFeed from './features/listings/components/ListingsFeed';
 import ListingForm from './features/listings/components/ListingForm';
 import ListingDetails from './features/listings/components/ListingDetails';
@@ -7,7 +7,7 @@ import ChatPage from './features/chat/components/ChatPage';
 import ModerationDashboard from './features/moderation/components/ModerationDashboard';
 import AlertsPage from './features/notifications/components/AlertsPage';
 import { AuthProvider, useAuth } from './shared/context/AuthContext';
-import { LogIn, LogOut, User as UserIcon, MessageSquare, Plus, ShieldCheck, Bell } from 'lucide-react';
+import { LogIn, LogOut, MessageSquare, Plus, ShieldCheck, Bell, ChevronDown } from 'lucide-react';
 import { notificationService } from './features/notifications/services/notificationService';
 import { chatService } from './features/chat/services/chatService';
 import { io } from 'socket.io-client';
@@ -16,10 +16,18 @@ const Header: React.FC = () => {
   const { user, token, isAuthenticated, logout } = useAuth();
   const canModerate = user?.role === 'ADMIN' || user?.role === 'MODERATOR';
   const [badgeCount, setBadgeCount] = React.useState(0);
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const handleLogin = () => {
-    window.location.href = '/api/auth/login';
-  };
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const refreshBadge = React.useCallback(async () => {
     if (!isAuthenticated) {
@@ -109,31 +117,58 @@ const Header: React.FC = () => {
                 </Link>
               )}
 
-              <div className="h-8 w-px bg-gray-200 hidden sm:block mx-1"></div>
+              <div className="h-8 w-px bg-white/30 hidden sm:block mx-1"></div>
 
-              <div className="flex items-center gap-2 text-sm font-medium text-white">
-                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600">
-                  <UserIcon size={18} />
-                </div>
-                <span className="hidden sm:inline">{user.name}</span>
+              <div className="relative" ref={menuRef}>
+                <button
+                  onClick={() => setMenuOpen(o => !o)}
+                  className="flex items-center gap-2 rounded-full pl-1 pr-2 py-1 hover:bg-white/10 transition-colors"
+                >
+                  {user.picture ? (
+                    <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full object-cover ring-2 ring-white/40" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-semibold text-sm">
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <span className="hidden sm:inline text-sm font-medium text-white">{user.name.split(' ')[0]}</span>
+                  <ChevronDown size={14} className={`text-white/80 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {menuOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg ring-1 ring-black/5 py-1 z-50">
+                    <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
+                      {user.picture ? (
+                        <img src={user.picture} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-semibold">
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => { setMenuOpen(false); logout(); }}
+                      className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <LogOut size={15} />
+                      Sair
+                    </button>
+                  </div>
+                )}
               </div>
-              
-              <button
-                onClick={logout}
-                className="p-2 text-white hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
-                title="Sair"
-              >
-                <LogOut size={18} />
-              </button>
             </div>
           ) : (
-            <button
-              onClick={handleLogin}
-              className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors shadow-sm"
+            <Link
+              to="/login"
+              className="flex items-center gap-2 bg-white text-red-600 px-4 py-2 rounded-md text-sm font-semibold hover:bg-red-50 transition-colors shadow-sm"
             >
               <LogIn size={18} />
-              <span>Entrar com seu email do CIn</span>
-            </button>
+              <span>Entrar</span>
+            </Link>
           )}
         </div>
       </div>
@@ -158,24 +193,27 @@ const Home: React.FC = () => {
 };
 
 const AuthSuccess: React.FC = () => {
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const error = new URLSearchParams(location.search).get('error');
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const token = params.get('token');
-
     if (error) return;
-
+    const token = new URLSearchParams(location.search).get('token');
     if (token) {
       login(token);
-      navigate('/', { replace: true });
     } else {
       navigate('/', { replace: true });
     }
-  }, [error, location.search, login, navigate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   if (error) {
     const message =
@@ -209,19 +247,78 @@ const AuthSuccess: React.FC = () => {
   );
 };
 
+const LoginPage: React.FC = () => {
+  const { isAuthenticated, loading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      const from = (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/';
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, loading, navigate, location.state]);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-amber-50 px-4">
+      <div className="max-w-sm w-full text-center bg-white rounded-2xl shadow-lg p-10">
+        <h1 className="text-4xl font-extrabold text-red-600 mb-1">CInplifica</h1>
+        <p className="text-gray-400 text-sm mb-8">Uma comunidade CIn</p>
+        <p className="text-gray-600 text-sm mb-6">
+          Use seu email institucional <strong>@cin.ufpe.br</strong> para acessar a plataforma.
+        </p>
+        <a
+          href="/api/auth/login"
+          className="flex items-center justify-center gap-3 w-full bg-red-600 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors shadow"
+        >
+          <LogIn size={18} />
+          Entrar com Google (@cin.ufpe.br)
+        </a>
+      </div>
+    </div>
+  );
+};
+
+const ProtectedRoute: React.FC<{ children: React.ReactNode; requiredRoles?: string[] }> = ({
+  children,
+  requiredRoles,
+}) => {
+  const { isAuthenticated, loading, user } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-amber-50">
+        <p className="text-gray-400 animate-pulse">Carregando...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (requiredRoles && user && !requiredRoles.includes(user.role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <>{children}</>;
+};
+
 const AppContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-amber-50">
       <Header />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/success" element={<AuthSuccess />} />
-        <Route path="/listings/new" element={<ListingForm />} />
-        <Route path="/listings/:id/edit" element={<ListingForm />} />
         <Route path="/listings/:id" element={<ListingDetails />} />
-        <Route path="/chat" element={<ChatPage />} />
-        <Route path="/moderation" element={<ModerationDashboard />} />
-        <Route path="/alerts" element={<AlertsPage />} />
+        <Route path="/listings/new" element={<ProtectedRoute><ListingForm /></ProtectedRoute>} />
+        <Route path="/listings/:id/edit" element={<ProtectedRoute><ListingForm /></ProtectedRoute>} />
+        <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+        <Route path="/alerts" element={<ProtectedRoute><AlertsPage /></ProtectedRoute>} />
+        <Route path="/moderation" element={<ProtectedRoute requiredRoles={['ADMIN', 'MODERATOR']}><ModerationDashboard /></ProtectedRoute>} />
       </Routes>
     </div>
   );

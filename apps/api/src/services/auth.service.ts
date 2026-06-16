@@ -40,13 +40,15 @@ if (isGoogleSsoConfigured) {
           }
 
           const name = profile.displayName || email.split('@')[0];
+          const picture = profile.photos?.[0]?.value ?? null;
 
           const user = await prisma.user.upsert({
             where: { email },
-            update: { name },
+            update: { name, picture },
             create: {
               email,
               name,
+              picture,
               role: 'STUDENT',
             },
           });

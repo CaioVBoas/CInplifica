@@ -22,11 +22,12 @@ export const generateToken = (user: any) => {
       id: user.id,
       email: user.email,
       name: user.name,
+      picture: user.picture ?? null,
       role: user.role,
       status: user.status,
     },
     JWT_SECRET,
-    { expiresIn: '24h' }
+    { expiresIn: '30d' }
   );
 };
 
