@@ -12,32 +12,63 @@ model User {
   email         String         @unique
   name          String
   role          String
+  status        String         @default("ACTIVE")
+  suspendedAt   DateTime?
   createdAt     DateTime       @default(now())
   listings      Listing[]
   messages      Message[]
   conversations Conversation[] @relation("UserConversations")
+  reports       Report[]       @relation("ReporterReports")
+  moderationActions ModerationAction[] @relation("ModeratorActions")
+  auditLogs     AuditLog[]      @relation("ActorAuditLogs")
+  messageReads  MessageRead[]
+  interestKeywords InterestKeyword[]
+  notifications Notification[]
+  completedConversations Conversation[] @relation("CompletedConversations")
+  reviewsWritten Review[]       @relation("ReviewsWritten")
+  reviewsReceived Review[]      @relation("ReviewsReceived")
 }
 
 model Listing {
-  id          String   @id @default(uuid())
-  title       String
-  description String
-  price       Float?
-  imageUrl    String?
-  category    String
-  status      String   @default("ACTIVE")
-  authorId    String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  author      User     @relation(fields: [authorId], references: [id])
+  id                    String   @id @default(uuid())
+  title                 String
+  description           String
+  price                 Float?
+  imageUrl              String?
+  category              String
+  status                String   @default("ACTIVE")
+  isFree                Boolean  @default(false)
+  lostFoundLocation     String?
+  lostFoundOccurredAt   DateTime?
+  lostFoundStatus       String?
+  academicExternalLink  String?
+  academicSubject       String?
+  academicProfessor     String?
+  academicTerm          String?
+  authorId              String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  author                User     @relation(fields: [authorId], references: [id])
+  conversations         Conversation[]
+  reviews               Review[]
 }
 
 model Conversation {
-  id        String    @id @default(uuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  messages  Message[]
-  users     User[]    @relation("UserConversations")
+  id            String    @id @default(uuid())
+  listingId     String?
+  status        String    @default("OPEN")
+  completedAt   DateTime?
+  completedById String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  listing       Listing?  @relation(fields: [listingId], references: [id])
+  completedBy   User?     @relation("CompletedConversations", fields: [completedById], references: [id])
+  messages      Message[]
+  users         User[]    @relation("UserConversations")
+  reviews       Review[]
+
+  @@index([listingId])
+  @@index([status, updatedAt])
 }
 
 model Message {
@@ -48,4 +79,142 @@ model Message {
   createdAt      DateTime     @default(now())
   conversation   Conversation @relation(fields: [conversationId], references: [id])
   sender         User         @relation(fields: [senderId], references: [id])
+  reads          MessageRead[]
+
+  @@index([conversationId, createdAt])
+  @@index([senderId, createdAt])
+}
+
+model MessageRead {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([userId, readAt])
+}
+
+model InterestKeyword {
+  id        String   @id @default(uuid())
+  keyword   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, keyword])
+  @@index([keyword])
+}
+
+enum NotificationType {
+  MESSAGE
+  INTEREST_ALERT
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  type      NotificationType
+  title     String
+  body      String
+  link      String?
+  readAt    DateTime?
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, readAt, createdAt])
+  @@index([type, createdAt])
+}
+
+enum ReportTargetType {
+  LISTING
+  MESSAGE
+  CONVERSATION
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  DISMISSED
+  RESOLVED
+}
+
+model Report {
+  id             String           @id @default(uuid())
+  targetType     ReportTargetType
+  targetId       String
+  reason         String
+  description    String?
+  status         ReportStatus     @default(PENDING)
+  reporterId     String
+  reporter       User             @relation("ReporterReports", fields: [reporterId], references: [id])
+  moderationActions ModerationAction[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([targetType, targetId])
+  @@index([status, createdAt])
+  @@index([reporterId, createdAt])
+}
+
+enum ModerationActionType {
+  APPROVE_REPORT
+  REJECT_REPORT
+  SUSPEND_USER
+  REMOVE_CONTENT
+}
+
+model ModerationAction {
+  id          String               @id @default(uuid())
+  action      ModerationActionType
+  reportId    String?
+  report      Report?              @relation(fields: [reportId], references: [id])
+  targetType  ReportTargetType?
+  targetId    String?
+  reason      String?
+  moderatorId String
+  moderator   User                 @relation("ModeratorActions", fields: [moderatorId], references: [id])
+  createdAt   DateTime             @default(now())
+
+  @@index([reportId])
+  @@index([action, createdAt])
+  @@index([moderatorId, createdAt])
+  @@index([targetType, targetId])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  action     String
+  entityType String
+  entityId   String?
+  actorId    String?
+  actor      User?    @relation("ActorAuditLogs", fields: [actorId], references: [id])
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+}
+
+model Review {
+  id             String       @id @default(uuid())
+  rating         Int
+  comment        String?
+  reviewerId     String
+  reviewedUserId String
+  conversationId String
+  listingId      String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  reviewer       User         @relation("ReviewsWritten", fields: [reviewerId], references: [id])
+  reviewedUser   User         @relation("ReviewsReceived", fields: [reviewedUserId], references: [id])
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  listing        Listing?     @relation(fields: [listingId], references: [id])
+
+  @@unique([reviewerId, conversationId, reviewedUserId])
+  @@index([reviewedUserId, createdAt])
+  @@index([listingId])
 }

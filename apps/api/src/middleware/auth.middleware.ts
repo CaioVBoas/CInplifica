@@ -1,7 +1,10 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
+import { env } from '../config/env';
+import { isAllowedCinEmail } from '../services/auth.service';
+import prisma from '../services/prisma';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-key';
+const JWT_SECRET = env.jwtSecret;
 
 export interface AuthRequest extends Request {
   user?: {
@@ -9,6 +12,7 @@ export interface AuthRequest extends Request {
     email: string;
     name: string;
     role: string;
+    status?: string;
   };
 }
 
@@ -19,13 +23,14 @@ export const generateToken = (user: any) => {
       email: user.email,
       name: user.name,
       role: user.role,
+      status: user.status,
     },
     JWT_SECRET,
     { expiresIn: '24h' }
   );
 };
 
-export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const authMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -46,9 +51,39 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as any;
-    (req as any).user = decoded;
+
+    if (!decoded?.email || !isAllowedCinEmail(decoded.email)) {
+      return res.status(403).json({ error: `Acesso restrito a estudantes com email @${env.allowedEmailDomain}.` });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: { id: true, email: true, name: true, role: true, status: true },
+    });
+
+    if (!user) {
+      return res.status(401).json({ error: 'Token invalid' });
+    }
+
+    if (user.status === 'SUSPENDED') {
+      return res.status(403).json({ error: 'Usuário suspenso.' });
+    }
+
+    (req as any).user = user;
     return next();
   } catch (err) {
     return res.status(401).json({ error: 'Token invalid' });
   }
+};
+
+export const requireRole = (allowedRoles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const role = (req as any).user?.role;
+
+    if (!role || !allowedRoles.includes(role)) {
+      return res.status(403).json({ error: 'Acesso não autorizado.' });
+    }
+
+    return next();
+  };
 };
