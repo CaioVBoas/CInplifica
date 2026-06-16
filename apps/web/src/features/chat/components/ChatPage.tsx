@@ -1,18 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Conversation, Message } from '../services/types';
 import { chatService } from '../services/chatService';
 import { useAuth } from '../../../shared/context/AuthContext';
-import { Search, Send, User, MessageSquare, ArrowLeft } from 'lucide-react';
+import { Search, Send, User, MessageSquare, ArrowLeft, CheckCircle, Loader2, Star } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
+
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || window.location.origin;
 
 const ChatPage: React.FC = () => {
   const { user, token } = useAuth();
+  const location = useLocation();
+  const conversationIdFromState = (location.state as { conversationId?: string } | null)?.conversationId;
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [socket, setSocket] = useState<Socket | null>(null);
   const [loading, setLoading] = useState(true);
+  const [completingConversation, setCompletingConversation] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -28,6 +38,10 @@ const ChatPage: React.FC = () => {
       try {
         const data = await chatService.fetchConversations();
         setConversations(data);
+        if (conversationIdFromState) {
+          const conversation = data.find((item) => item.id === conversationIdFromState);
+          if (conversation) setActiveConversation(conversation);
+        }
       } catch (error) {
         console.error('Failed to fetch conversations', error);
       } finally {
@@ -36,12 +50,12 @@ const ChatPage: React.FC = () => {
     };
 
     if (user) fetchConversations();
-  }, [user]);
+  }, [conversationIdFromState, user]);
 
   useEffect(() => {
     if (!token) return;
 
-    const newSocket = io('http://localhost:3011', {
+    const newSocket = io(SOCKET_URL, {
       auth: { token },
       transports: ['websocket'],
     });
@@ -59,12 +73,23 @@ const ChatPage: React.FC = () => {
     const handleNewMessage = (message: Message) => {
       if (activeConversation && message.conversationId === activeConversation.id) {
         setMessages((prev) => [...prev, message]);
+        if (message.senderId !== user?.id) {
+          chatService.markConversationRead(activeConversation.id).catch(() => undefined);
+        }
       }
       
       setConversations((prev) => 
         prev.map((conv) => 
           conv.id === message.conversationId 
-            ? { ...conv, messages: [message], updatedAt: message.createdAt }
+            ? {
+                ...conv,
+                messages: [message],
+                updatedAt: message.createdAt,
+                unreadCount:
+                  activeConversation?.id === conv.id || message.senderId === user?.id
+                    ? 0
+                    : (conv.unreadCount || 0) + 1,
+              }
             : conv
         ).sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
       );
@@ -74,7 +99,7 @@ const ChatPage: React.FC = () => {
     return () => {
       socket.off('new_message', handleNewMessage);
     };
-  }, [socket, activeConversation]);
+  }, [socket, activeConversation, user?.id]);
 
   useEffect(() => {
     if (activeConversation) {
@@ -83,6 +108,9 @@ const ChatPage: React.FC = () => {
         try {
           const data = await chatService.fetchMessages(activeConversation.id);
           setMessages(data);
+          setConversations((prev) =>
+            prev.map((conv) => conv.id === activeConversation.id ? { ...conv, unreadCount: 0 } : conv)
+          );
           socket?.emit('join_conversation', activeConversation.id);
         } catch (error) {
           console.error('Failed to fetch messages', error);
@@ -104,6 +132,66 @@ const ChatPage: React.FC = () => {
 
     socket.emit('send_message', messageData);
     setNewMessage('');
+  };
+
+  const updateConversationState = (updatedConversation: Conversation) => {
+    setActiveConversation(updatedConversation);
+    setConversations((prev) =>
+      prev.map((conversation) =>
+        conversation.id === updatedConversation.id ? updatedConversation : conversation
+      )
+    );
+  };
+
+  const activeOtherUser = activeConversation?.participants.find((participant) => participant.id !== user?.id);
+  const currentUserReview = activeConversation?.reviews?.find(
+    (review) => review.reviewerId === user?.id && review.reviewedUserId === activeOtherUser?.id
+  );
+
+  const handleCompleteConversation = async () => {
+    if (!activeConversation || completingConversation) return;
+
+    setCompletingConversation(true);
+    setActionError(null);
+
+    try {
+      const updatedConversation = await chatService.completeConversation(activeConversation.id);
+      updateConversationState(updatedConversation);
+    } catch (error) {
+      console.error(error);
+      setActionError(error instanceof Error ? error.message : 'Não foi possível concluir a negociação.');
+    } finally {
+      setCompletingConversation(false);
+    }
+  };
+
+  const handleSubmitReview = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!activeConversation || !activeOtherUser || currentUserReview || reviewSubmitting) return;
+
+    setReviewSubmitting(true);
+    setActionError(null);
+
+    try {
+      const review = await chatService.createReview({
+        conversationId: activeConversation.id,
+        reviewedUserId: activeOtherUser.id,
+        rating: reviewRating,
+        comment: reviewComment,
+      });
+
+      const updatedConversation = {
+        ...activeConversation,
+        reviews: [...(activeConversation.reviews ?? []), review],
+      };
+      updateConversationState(updatedConversation);
+      setReviewComment('');
+    } catch (error) {
+      console.error(error);
+      setActionError(error instanceof Error ? error.message : 'Não foi possível enviar a avaliação.');
+    } finally {
+      setReviewSubmitting(false);
+    }
   };
 
   if (loading) {
@@ -164,9 +252,16 @@ const ChatPage: React.FC = () => {
                         {new Date(conv.updatedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
-                    <p className={`text-sm truncate ${isActive ? 'text-blue-600' : 'text-gray-500'}`}>
-                      {conv.messages[0]?.text || 'Clique para conversar...'}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className={`min-w-0 flex-1 text-sm truncate ${isActive ? 'text-blue-600' : 'text-gray-500'}`}>
+                        {conv.messages[0]?.text || 'Clique para conversar...'}
+                      </p>
+                      {!isActive && conv.unreadCount > 0 && (
+                        <span className="shrink-0 rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                          {conv.unreadCount}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </button>
               );
@@ -201,6 +296,80 @@ const ChatPage: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div className="border-b border-gray-100 bg-white px-4 py-3">
+              {actionError && (
+                <div className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {actionError}
+                </div>
+              )}
+
+              {activeConversation.status === 'COMPLETED' ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-green-700">
+                    <CheckCircle size={18} />
+                    Negociação concluída
+                    {activeConversation.completedAt && (
+                      <span className="font-normal text-gray-500">
+                        em {new Date(activeConversation.completedAt).toLocaleDateString('pt-BR')}
+                      </span>
+                    )}
+                  </div>
+
+                  {currentUserReview ? (
+                    <div className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-800">
+                      Você avaliou {activeOtherUser?.name} com {currentUserReview.rating} estrela{currentUserReview.rating === 1 ? '' : 's'}.
+                    </div>
+                  ) : (
+                    <form onSubmit={handleSubmitReview} className="grid gap-3 md:grid-cols-[auto_minmax(220px,1fr)_auto] md:items-center">
+                      <div className="flex items-center gap-1" aria-label="Nota da avaliação">
+                        {[1, 2, 3, 4, 5].map((rating) => (
+                          <button
+                            key={rating}
+                            type="button"
+                            onClick={() => setReviewRating(rating)}
+                            className={`p-1 ${rating <= reviewRating ? 'text-yellow-500' : 'text-gray-300'}`}
+                            title={`${rating} estrela${rating === 1 ? '' : 's'}`}
+                          >
+                            <Star size={20} fill="currentColor" />
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        type="text"
+                        value={reviewComment}
+                        onChange={(event) => setReviewComment(event.target.value)}
+                        placeholder="Comentário opcional sobre a negociação"
+                        className="rounded-md border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      />
+                      <button
+                        type="submit"
+                        disabled={reviewSubmitting}
+                        className="inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                      >
+                        {reviewSubmitting && <Loader2 className="animate-spin" size={16} />}
+                        Avaliar
+                      </button>
+                    </form>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <p className="text-sm text-gray-600">
+                    Quando a negociação terminar, conclua a conversa para liberar a avaliação.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleCompleteConversation}
+                    disabled={completingConversation}
+                    className="inline-flex items-center justify-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                  >
+                    {completingConversation ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle size={16} />}
+                    Concluir negociação
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Messages */}

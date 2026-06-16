@@ -5,6 +5,7 @@ interface User {
   name: string;
   email: string;
   role: string;
+  status?: string;
 }
 
 interface AuthContextType {
@@ -46,6 +47,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           name: payload.name,
           email: payload.email,
           role: payload.role,
+          status: payload.status,
         });
       } catch (e) {
         console.error('Failed to decode token', e);
