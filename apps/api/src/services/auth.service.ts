@@ -1,5 +1,5 @@
 import passport from 'passport';
-import { Strategy as OpenIDConnectStrategy } from 'passport-openidconnect';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import prisma from '../services/prisma';
 import { env, isProduction } from '../config/env';
 
@@ -9,60 +9,37 @@ export const isAllowedCinEmail = (email: string) => {
   return normalizeEmail(email).endsWith(`@${env.allowedEmailDomain.toLowerCase()}`);
 };
 
-const getProfileEmail = (profile: any) => {
-  const email = profile?.emails?.[0]?.value || profile?._json?.email;
+export const isGoogleSsoConfigured = Boolean(env.googleClientId && env.googleClientSecret);
 
-  if (typeof email !== 'string' || !email.trim()) {
-    throw new Error('O SSO do CIn não retornou um email válido.');
-  }
-
-  return normalizeEmail(email);
-};
-
-const getProfileName = (profile: any, email: string) => {
-  return profile?.displayName || profile?._json?.name || email.split('@')[0];
-};
-
-const requiredSsoVariables = [
-  env.cinSsoClientId,
-  env.cinSsoClientSecret,
-  env.cinSsoIssuer,
-  env.cinSsoAuthorizationUrl,
-  env.cinSsoTokenUrl,
-  env.cinSsoUserInfoUrl,
-  env.cinSsoCallbackUrl,
-];
-
-export const isCinSsoConfigured = requiredSsoVariables.every((value) => Boolean(value));
-
-if (isProduction && !isCinSsoConfigured) {
-  throw new Error('CIn SSO is not configured. Set CIN_SSO_* environment variables before starting production.');
+if (isProduction && !isGoogleSsoConfigured) {
+  throw new Error('Google SSO is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET before starting production.');
 }
 
-if (isCinSsoConfigured) {
+if (isGoogleSsoConfigured) {
   passport.use(
-    'cin-sso',
-    new OpenIDConnectStrategy(
+    new GoogleStrategy(
       {
-        issuer: env.cinSsoIssuer,
-        authorizationURL: env.cinSsoAuthorizationUrl,
-        tokenURL: env.cinSsoTokenUrl,
-        userInfoURL: env.cinSsoUserInfoUrl,
-        clientID: env.cinSsoClientId,
-        clientSecret: env.cinSsoClientSecret,
-        callbackURL: env.cinSsoCallbackUrl,
-        scope: ['openid', 'profile', 'email'],
+        clientID: env.googleClientId,
+        clientSecret: env.googleClientSecret,
+        callbackURL: env.googleCallbackUrl,
+        scope: ['profile', 'email'],
       },
-      async (issuer: string, profile: any, done: any) => {
+      async (_accessToken, _refreshToken, profile, done) => {
         try {
-          const email = getProfileEmail(profile);
-          const name = getProfileName(profile, email);
+          const emailEntry = profile.emails?.[0]?.value;
+          if (!emailEntry) {
+            return done(null, false, { message: 'O Google não retornou um email válido.' });
+          }
+
+          const email = normalizeEmail(emailEntry);
 
           if (!isAllowedCinEmail(email)) {
             return done(null, false, {
               message: `Acesso restrito a estudantes com email @${env.allowedEmailDomain}.`,
             });
           }
+
+          const name = profile.displayName || email.split('@')[0];
 
           const user = await prisma.user.upsert({
             where: { email },
@@ -76,7 +53,7 @@ if (isCinSsoConfigured) {
 
           return done(null, user);
         } catch (error) {
-          return done(error);
+          return done(error as Error);
         }
       }
     )

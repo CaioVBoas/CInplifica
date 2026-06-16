@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import passport, { isAllowedCinEmail, isCinSsoConfigured } from '../services/auth.service';
+import passport, { isAllowedCinEmail, isGoogleSsoConfigured } from '../services/auth.service';
 import { generateToken } from '../middleware/auth.middleware';
 import { env, isProduction } from '../config/env';
 import prisma from '../services/prisma';
@@ -9,13 +9,13 @@ const router = Router();
 
 // Initiate SSO Login
 router.get('/login', (req, res, next) => {
-  if (!isCinSsoConfigured) {
+  if (!isGoogleSsoConfigured) {
     return res.status(503).json({
-      error: 'CIn SSO is not configured. Set CIN_SSO_* environment variables.',
+      error: 'Google SSO is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.',
     });
   }
 
-  return passport.authenticate('cin-sso')(req, res, next);
+  return passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
 });
 
 // Mock Login for Development
@@ -53,13 +53,13 @@ router.get('/mock-login', async (req, res) => {
 router.get(
   '/callback',
   (req, res, next) => {
-    if (!isCinSsoConfigured) {
+    if (!isGoogleSsoConfigured) {
       return res.status(503).json({
-        error: 'CIn SSO is not configured. Set CIN_SSO_* environment variables.',
+        error: 'Google SSO is not configured. Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.',
       });
     }
 
-    return passport.authenticate('cin-sso', {
+    return passport.authenticate('google', {
       failureRedirect: `${env.frontendUrl}/auth/success?error=unauthorized_domain`,
       session: false,
     })(req, res, next);

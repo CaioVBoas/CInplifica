@@ -1,0 +1,6 @@
+packages:
+  # Include all packages in the packages directory
+  - 'packages/*'
+  # Include all applications in the apps directory
+  - 'apps/*'
+  - '!**/test/**'

@@ -1,9 +1,6 @@
 {
   "name": "cinplifica",
   "private": true,
-  "workspaces": [
-    "apps/*"
-  ],
   "scripts": {
     "setup": "./scripts/setup-dev.sh",
     "api": "npm run dev --workspace=api",

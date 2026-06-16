@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { type Request, type Response } from 'express';
 import cors from 'cors';
 import path from 'path';
 import { createServer } from 'http';
@@ -16,6 +16,12 @@ import notificationRoutes from './routes/notification.routes';
 import interestRoutes from './routes/interest.routes';
 import conversationService from './services/conversation.service';
 import { env } from './config/env';
+
+type Participant = {
+  id: string;
+  name: string;
+  email: string;
+};
 
 const app = express();
 const httpServer = createServer(app);
@@ -44,7 +50,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/interests', interestRoutes);
 
 // Basic health check
-app.get('/health', (req, res) => {
+app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
@@ -101,8 +107,8 @@ io.on('connection', (socket) => {
       if (conversation) {
         await Promise.all(
           conversation.users
-            .filter((participant) => participant.id !== socket.data.user.id)
-            .map(async (participant) => {
+            .filter((participant: { id: string }) => participant.id !== socket.data.user.id)
+            .map(async (participant: { id: string }) => {
               const count = await conversationService.getTotalUnreadCount(participant.id);
               io.to(`user:${participant.id}`).emit('unread_count_updated', { count });
             })
