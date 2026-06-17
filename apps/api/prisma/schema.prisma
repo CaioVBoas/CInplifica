@@ -28,6 +28,9 @@ model User {
   completedConversations Conversation[] @relation("CompletedConversations")
   reviewsWritten Review[]       @relation("ReviewsWritten")
   reviewsReceived Review[]      @relation("ReviewsReceived")
+  forumTopics   ForumTopic[]   @relation("ForumTopicAuthor")
+  forumAnswers  ForumAnswer[]  @relation("ForumAnswerAuthor")
+  forumComments ForumComment[] @relation("ForumCommentAuthor")
 }
 
 model Listing {
@@ -198,6 +201,49 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([actorId, createdAt])
   @@index([action, createdAt])
+}
+
+model ForumTopic {
+  id        String        @id @default(uuid())
+  title     String
+  content   String
+  authorId  String
+  author    User          @relation("ForumTopicAuthor", fields: [authorId], references: [id])
+  answers   ForumAnswer[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([authorId, createdAt])
+  @@index([createdAt])
+}
+
+model ForumAnswer {
+  id        String         @id @default(uuid())
+  content   String
+  topicId   String
+  authorId  String
+  topic     ForumTopic     @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  author    User           @relation("ForumAnswerAuthor", fields: [authorId], references: [id])
+  comments  ForumComment[]
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([topicId, createdAt])
+  @@index([authorId, createdAt])
+}
+
+model ForumComment {
+  id        String      @id @default(uuid())
+  content   String
+  answerId  String
+  authorId  String
+  answer    ForumAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  author    User        @relation("ForumCommentAuthor", fields: [authorId], references: [id])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([answerId, createdAt])
+  @@index([authorId, createdAt])
 }
 
 model Review {

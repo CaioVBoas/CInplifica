@@ -6,8 +6,11 @@ import ListingDetails from './features/listings/components/ListingDetails';
 import ChatPage from './features/chat/components/ChatPage';
 import ModerationDashboard from './features/moderation/components/ModerationDashboard';
 import AlertsPage from './features/notifications/components/AlertsPage';
+import ForumPage from './features/forum/components/ForumPage';
+import NewTopicPage from './features/forum/components/NewTopicPage';
+import TopicPage from './features/forum/components/TopicPage';
 import { AuthProvider, useAuth } from './shared/context/AuthContext';
-import { LogIn, LogOut, MessageSquare, Plus, ShieldCheck, Bell, ChevronDown } from 'lucide-react';
+import { LogIn, LogOut, MessageSquare, Plus, ShieldCheck, Bell, ChevronDown, Hash } from 'lucide-react';
 import { notificationService } from './features/notifications/services/notificationService';
 import { chatService } from './features/chat/services/chatService';
 import { io } from 'socket.io-client';
@@ -85,8 +88,16 @@ const Header: React.FC = () => {
                 <span className="hidden md:inline">Anunciar</span>
               </Link>
               
-              <Link 
-                to="/chat" 
+              <Link
+                to="/forum"
+                className="p-2 text-white hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
+                title="Fórum"
+              >
+                <Hash size={22} />
+              </Link>
+
+              <Link
+                to="/chat"
                 className="relative p-2 text-white hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
                 title="Mensagens"
               >
@@ -316,6 +327,9 @@ const AppContent: React.FC = () => {
         <Route path="/listings/:id" element={<ListingDetails />} />
         <Route path="/listings/new" element={<ProtectedRoute><ListingForm /></ProtectedRoute>} />
         <Route path="/listings/:id/edit" element={<ProtectedRoute><ListingForm /></ProtectedRoute>} />
+        <Route path="/forum" element={<ProtectedRoute><ForumPage /></ProtectedRoute>} />
+        <Route path="/forum/novo" element={<ProtectedRoute><NewTopicPage /></ProtectedRoute>} />
+        <Route path="/forum/:id" element={<ProtectedRoute><TopicPage /></ProtectedRoute>} />
         <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
         <Route path="/alerts" element={<ProtectedRoute><AlertsPage /></ProtectedRoute>} />
         <Route path="/moderation" element={<ProtectedRoute requiredRoles={['ADMIN', 'MODERATOR']}><ModerationDashboard /></ProtectedRoute>} />
