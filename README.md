@@ -10,8 +10,9 @@ Para popular o banco local com dados mockados:
 pnpm db:seed
 ```
 
-O seed é idempotente e pode ser executado mais de uma vez. Ele cria usuários, anúncios,
-conversas, mensagens, alertas, denúncias, ações de moderação e logs de auditoria.
+O seed é idempotente e pode ser executado mais de uma vez. Ele cria usuários com avatar,
+anúncios com imagens, conversas, mensagens, alertas, denúncias, ações de moderação,
+logs de auditoria e conteúdo inicial para o fórum.
 
 No ambiente local, você pode gerar token para perfis mockados pelo endpoint:
 

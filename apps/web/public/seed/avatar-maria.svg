@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="Maria Silva">
+  <rect width="240" height="240" rx="120" fill="#7c3aed"/>
+  <circle cx="120" cy="92" r="42" fill="#ede9fe"/>
+  <path d="M50 212c10-43 35-65 70-65s60 22 70 65" fill="#ede9fe"/>
+  <text x="120" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#6d28d9">M</text>
+</svg>

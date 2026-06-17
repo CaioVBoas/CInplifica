@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="Admin CIn">
+  <rect width="240" height="240" rx="120" fill="#b91c1c"/>
+  <circle cx="120" cy="92" r="42" fill="#fee2e2"/>
+  <path d="M50 212c10-43 35-65 70-65s60 22 70 65" fill="#fee2e2"/>
+  <text x="120" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#991b1b">A</text>
+</svg>

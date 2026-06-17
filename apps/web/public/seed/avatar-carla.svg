@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" role="img" aria-label="Carla Melo">
+  <rect width="240" height="240" rx="120" fill="#0f766e"/>
+  <circle cx="120" cy="92" r="42" fill="#ccfbf1"/>
+  <path d="M50 212c10-43 35-65 70-65s60 22 70 65" fill="#ccfbf1"/>
+  <text x="120" y="130" text-anchor="middle" font-family="Arial, sans-serif" font-size="42" font-weight="700" fill="#115e59">C</text>
+</svg>

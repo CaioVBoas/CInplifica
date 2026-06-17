@@ -54,6 +54,22 @@ const ids = {
     message: 'seed-notification-message',
     interest: 'seed-notification-interest',
   },
+  forumTopics: {
+    marketplaceTips: 'seed-forum-topic-marketplace-tips',
+    calculusHelp: 'seed-forum-topic-calculus-help',
+    internship: 'seed-forum-topic-internship',
+  },
+  forumAnswers: {
+    marketplaceTips1: 'seed-forum-answer-marketplace-tips-1',
+    marketplaceTips2: 'seed-forum-answer-marketplace-tips-2',
+    calculusHelp1: 'seed-forum-answer-calculus-help-1',
+    internship1: 'seed-forum-answer-internship-1',
+  },
+  forumComments: {
+    marketplaceThanks: 'seed-forum-comment-marketplace-thanks',
+    calculusFollowup: 'seed-forum-comment-calculus-followup',
+    internshipThanks: 'seed-forum-comment-internship-thanks',
+  },
 };
 
 const daysAgo = (days: number) => {
@@ -70,7 +86,7 @@ async function seedUsers() {
       name: 'User Teste',
       role: 'STUDENT',
       status: 'ACTIVE',
-      picture: '/logo.png',
+      picture: '/seed/avatar-test.svg',
     },
     {
       id: ids.users.maria,
@@ -78,7 +94,7 @@ async function seedUsers() {
       name: 'Maria Silva',
       role: 'STUDENT',
       status: 'ACTIVE',
-      picture: null,
+      picture: '/seed/avatar-maria.svg',
     },
     {
       id: ids.users.joao,
@@ -86,7 +102,7 @@ async function seedUsers() {
       name: 'João Souza',
       role: 'STUDENT',
       status: 'ACTIVE',
-      picture: null,
+      picture: '/seed/avatar-joao.svg',
     },
     {
       id: ids.users.carla,
@@ -94,7 +110,7 @@ async function seedUsers() {
       name: 'Carla Melo',
       role: 'STUDENT',
       status: 'ACTIVE',
-      picture: null,
+      picture: '/seed/avatar-carla.svg',
     },
     {
       id: ids.users.admin,
@@ -102,7 +118,7 @@ async function seedUsers() {
       name: 'Admin CIn',
       role: 'ADMIN',
       status: 'ACTIVE',
-      picture: '/logo.png',
+      picture: '/seed/avatar-admin.svg',
     },
   ];
 
@@ -132,7 +148,7 @@ async function seedListings(authorIds: Record<string, string>) {
       price: 850,
       category: 'SALE',
       status: 'ACTIVE',
-      imageUrl: '/logo.png',
+      imageUrl: '/seed/monitor.svg',
       authorId: authorIds.maria,
       createdAt: daysAgo(1),
     },
@@ -143,7 +159,7 @@ async function seedListings(authorIds: Record<string, string>) {
       price: 150,
       category: 'SALE',
       status: 'ACTIVE',
-      imageUrl: null,
+      imageUrl: '/seed/book.svg',
       authorId: authorIds.joao,
       createdAt: daysAgo(2),
     },
@@ -154,7 +170,7 @@ async function seedListings(authorIds: Record<string, string>) {
       price: 220,
       category: 'SALE',
       status: 'SOLD',
-      imageUrl: null,
+      imageUrl: '/seed/calculator.svg',
       authorId: authorIds.joao,
       createdAt: daysAgo(10),
     },
@@ -165,7 +181,7 @@ async function seedListings(authorIds: Record<string, string>) {
       price: null,
       category: 'LOST_FOUND',
       status: 'ACTIVE',
-      imageUrl: null,
+      imageUrl: '/seed/keys.svg',
       authorId: authorIds.carla,
       lostFoundLocation: 'Bloco A',
       lostFoundOccurredAt: daysAgo(1),
@@ -179,7 +195,7 @@ async function seedListings(authorIds: Record<string, string>) {
       price: null,
       category: 'LOST_FOUND',
       status: 'RETURNED',
-      imageUrl: null,
+      imageUrl: '/seed/bottle.svg',
       authorId: authorIds.test,
       lostFoundLocation: 'Anfiteatro',
       lostFoundOccurredAt: daysAgo(5),
@@ -193,7 +209,7 @@ async function seedListings(authorIds: Record<string, string>) {
       price: null,
       category: 'ACADEMIC',
       status: 'ACTIVE',
-      imageUrl: null,
+      imageUrl: '/seed/study.svg',
       isFree: true,
       authorId: authorIds.carla,
       academicSubject: 'Cálculo 1',
@@ -209,7 +225,7 @@ async function seedListings(authorIds: Record<string, string>) {
       price: null,
       category: 'ACADEMIC',
       status: 'ACTIVE',
-      imageUrl: null,
+      imageUrl: '/seed/notes.svg',
       isFree: true,
       authorId: authorIds.maria,
       academicSubject: 'Engenharia de Software',
@@ -610,6 +626,117 @@ async function seedModeration(userIds: Record<string, string>) {
   });
 }
 
+async function seedForum(userIds: Record<string, string>) {
+  const topics = [
+    {
+      id: ids.forumTopics.marketplaceTips,
+      title: 'Boas práticas para vender no mural',
+      content: 'Quais informações vocês colocam no anúncio para evitar dúvidas e fechar uma negociação mais rápido?',
+      authorId: userIds.maria,
+      createdAt: daysAgo(6),
+    },
+    {
+      id: ids.forumTopics.calculusHelp,
+      title: 'Dicas para revisar Cálculo 1 antes da prova',
+      content: 'Estou montando uma rotina de revisão para limites, derivadas e integrais. O que vale priorizar?',
+      authorId: userIds.carla,
+      createdAt: daysAgo(4),
+    },
+    {
+      id: ids.forumTopics.internship,
+      title: 'Como preparar currículo para estágio em desenvolvimento?',
+      content: 'Quero aplicar para vagas de estágio e gostaria de sugestões do que destacar no currículo e no GitHub.',
+      authorId: userIds.test,
+      createdAt: daysAgo(2),
+    },
+  ];
+
+  await Promise.all(
+    topics.map((topic) =>
+      prisma.forumTopic.upsert({
+        where: { id: topic.id },
+        update: topic,
+        create: topic,
+      })
+    )
+  );
+
+  const answers = [
+    {
+      id: ids.forumAnswers.marketplaceTips1,
+      content: 'Coloco foto clara, preço, estado do item, local de entrega e se aceito negociação. Isso reduz bastante as mensagens repetidas.',
+      topicId: ids.forumTopics.marketplaceTips,
+      authorId: userIds.joao,
+      createdAt: daysAgo(5),
+    },
+    {
+      id: ids.forumAnswers.marketplaceTips2,
+      content: 'Também ajuda avisar se o item acompanha cabo, caixa, nota fiscal ou algum acessório importante.',
+      topicId: ids.forumTopics.marketplaceTips,
+      authorId: userIds.test,
+      createdAt: daysAgo(5),
+    },
+    {
+      id: ids.forumAnswers.calculusHelp1,
+      content: 'Eu começaria por listas antigas e depois faria um resumo com os erros mais frequentes. Para integrais, treinar substituição ajuda muito.',
+      topicId: ids.forumTopics.calculusHelp,
+      authorId: userIds.maria,
+      createdAt: daysAgo(3),
+    },
+    {
+      id: ids.forumAnswers.internship1,
+      content: 'Mostre projetos pequenos, mas completos: README, stack, prints e instruções para rodar. Recrutador gosta de ver clareza.',
+      topicId: ids.forumTopics.internship,
+      authorId: userIds.admin,
+      createdAt: daysAgo(1),
+    },
+  ];
+
+  await Promise.all(
+    answers.map((answer) =>
+      prisma.forumAnswer.upsert({
+        where: { id: answer.id },
+        update: answer,
+        create: answer,
+      })
+    )
+  );
+
+  const comments = [
+    {
+      id: ids.forumComments.marketplaceThanks,
+      content: 'Boa, vou adicionar essas informações nos meus próximos anúncios.',
+      answerId: ids.forumAnswers.marketplaceTips1,
+      authorId: userIds.carla,
+      createdAt: daysAgo(4),
+    },
+    {
+      id: ids.forumComments.calculusFollowup,
+      content: 'Listas antigas realmente ajudam. Vou separar por assunto para não misturar tudo.',
+      answerId: ids.forumAnswers.calculusHelp1,
+      authorId: userIds.test,
+      createdAt: daysAgo(2),
+    },
+    {
+      id: ids.forumComments.internshipThanks,
+      content: 'Faz sentido. Vou melhorar os READMEs antes de mandar currículo.',
+      answerId: ids.forumAnswers.internship1,
+      authorId: userIds.joao,
+      createdAt: daysAgo(1),
+    },
+  ];
+
+  await Promise.all(
+    comments.map((comment) =>
+      prisma.forumComment.upsert({
+        where: { id: comment.id },
+        update: comment,
+        create: comment,
+      })
+    )
+  );
+}
+
 async function main() {
   const users = await seedUsers();
   const userIds = {
@@ -624,6 +751,7 @@ async function main() {
   await seedConversations(userIds);
   await seedNotifications(userIds);
   await seedModeration(userIds);
+  await seedForum(userIds);
 
   console.log('Seed de desenvolvimento concluído.');
   console.table([
