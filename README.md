@@ -2,6 +2,32 @@
 
 O CInplifica é uma plataforma dedicada à comunidade do CIn-UFPE para organizar anúncios, vendas, achados e perdidos, e comunicações acadêmicas.
 
+## Dados de desenvolvimento
+
+Para popular o banco local com dados mockados:
+
+```bash
+pnpm db:seed
+```
+
+O seed é idempotente e pode ser executado mais de uma vez. Ele cria usuários, anúncios,
+conversas, mensagens, alertas, denúncias, ações de moderação e logs de auditoria.
+
+No ambiente local, você pode gerar token para perfis mockados pelo endpoint:
+
+```bash
+http://localhost:3011/api/auth/mock-login
+http://localhost:3011/api/auth/mock-login?email=admin@cin.ufpe.br
+```
+
+Usuários principais:
+
+- `test@cin.ufpe.br` - aluno padrão
+- `admin@cin.ufpe.br` - administrador
+- `maria.silva@cin.ufpe.br` - vendedora
+- `joao.souza@cin.ufpe.br` - vendedor
+- `carla.melo@cin.ufpe.br` - acadêmico
+
 ## Arquitetura
 
 O projeto segue uma arquitetura de três camadas:

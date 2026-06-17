@@ -4,6 +4,7 @@
   "scripts": {
     "setup": "./scripts/setup-dev.sh",
     "api": "pnpm --filter api dev",
-    "web": "pnpm --filter web dev"
+    "web": "pnpm --filter web dev",
+    "db:seed": "pnpm --filter api prisma:seed"
   }
 }

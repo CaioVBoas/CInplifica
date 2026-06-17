@@ -24,20 +24,29 @@ router.get('/mock-login', async (req, res) => {
     return res.status(403).json({ error: 'Mock login not allowed in production' });
   }
 
+  const requestedEmail = typeof req.query.email === 'string'
+    ? req.query.email.trim().toLowerCase()
+    : 'test@cin.ufpe.br';
+
+  if (!isAllowedCinEmail(requestedEmail)) {
+    return res.status(403).json({ error: `Mock user must use @${env.allowedEmailDomain}.` });
+  }
+
+  const existingUser = await prisma.user.findUnique({ where: { email: requestedEmail } });
+  const fallbackName = requestedEmail === 'test@cin.ufpe.br'
+    ? 'User Teste'
+    : requestedEmail.split('@')[0].replace(/[._-]+/g, ' ');
+
   const user = await prisma.user.upsert({
-    where: { email: 'test@cin.ufpe.br' },
-    update: { name: 'User Teste', role: 'STUDENT', status: 'ACTIVE' },
+    where: { email: requestedEmail },
+    update: { status: 'ACTIVE', suspendedAt: null },
     create: {
-      email: 'test@cin.ufpe.br',
-      name: 'User Teste',
+      email: requestedEmail,
+      name: fallbackName,
       role: 'STUDENT',
       status: 'ACTIVE',
     },
   });
-
-  if (!isAllowedCinEmail(user.email)) {
-    return res.status(403).json({ error: `Mock user must use @${env.allowedEmailDomain}.` });
-  }
 
   const token = generateToken(user);
   await auditLogService.create({
@@ -45,6 +54,7 @@ router.get('/mock-login', async (req, res) => {
     entityType: 'User',
     entityId: user.id,
     actorId: user.id,
+    metadata: existingUser ? { seeded: true } : { seeded: false },
   });
   res.json({ token, user });
 });

@@ -153,6 +153,38 @@ export class ListingController {
     }
   }
 
+  async getMine(req: Request, res: Response) {
+    try {
+      const currentUserId = (req as any).user?.id;
+      const { category, search, status } = req.query;
+      const { page, limit } = normalizePagination(req.query);
+
+      if (!currentUserId) {
+        return res.status(401).json({ error: 'Usuário não autenticado.' });
+      }
+
+      if (category && !ALLOWED_CATEGORIES.includes(String(category))) {
+        return res.status(400).json({ error: 'Categoria inválida.' });
+      }
+
+      if (status && !ALLOWED_STATUSES.includes(String(status))) {
+        return res.status(400).json({ error: 'Status inválido.' });
+      }
+
+      const listings = await listingService.getMine(
+        currentUserId,
+        category as string,
+        search as string,
+        status as string,
+        page,
+        limit,
+      );
+      res.json(listings);
+    } catch (error) {
+      res.status(500).json({ error: 'Falha ao buscar seus anúncios.' });
+    }
+  }
+
   async getById(req: Request, res: Response) {
     try {
       const { id } = req.params;
