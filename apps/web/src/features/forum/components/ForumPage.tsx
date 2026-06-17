@@ -3,11 +3,18 @@ import { Link, useNavigate } from 'react-router-dom';
 import { MessageSquare, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import { forumService, ForumTopic } from '../services/forumService';
 
+const avatarSizeClasses: Record<number, string> = {
+  6: 'w-6 h-6',
+  8: 'w-8 h-8',
+  10: 'w-10 h-10',
+};
+
 const Avatar: React.FC<{ name: string; picture: string | null; size?: number }> = ({ name, picture, size = 8 }) => {
-  const cls = `w-${size} h-${size} rounded-full object-cover`;
+  const sizeClass = avatarSizeClasses[size] || avatarSizeClasses[8];
+  const cls = `${sizeClass} rounded-full object-cover flex-shrink-0`;
   if (picture) return <img src={picture} alt={name} className={cls} />;
   return (
-    <div className={`w-${size} h-${size} rounded-full bg-red-100 flex items-center justify-center text-red-600 font-semibold text-sm`}>
+    <div className={`${cls} bg-red-100 flex items-center justify-center text-red-600 font-semibold text-sm`}>
       {name.charAt(0).toUpperCase()}
     </div>
   );

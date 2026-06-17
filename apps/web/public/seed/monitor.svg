@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640" role="img" aria-label="Monitor Dell">
-  <rect width="960" height="640" fill="#f8fafc"/>
-  <rect x="150" y="90" width="660" height="382" rx="36" fill="#111827"/>
-  <rect x="190" y="130" width="580" height="302" rx="18" fill="#e0f2fe"/>
-  <path d="M220 388c92-92 162-94 236-20 62 62 116 70 178 8 46-46 84-58 126-36v92H220z" fill="#38bdf8"/>
-  <circle cx="646" cy="204" r="54" fill="#facc15"/>
-  <rect x="424" y="472" width="112" height="58" fill="#374151"/>
-  <rect x="310" y="530" width="340" height="34" rx="17" fill="#4b5563"/>
-</svg>
