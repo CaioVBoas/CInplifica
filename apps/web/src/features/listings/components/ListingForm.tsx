@@ -314,7 +314,7 @@ const ListingForm: React.FC = () => {
                     min="0"
                     value={formData.price}
                     onChange={handleChange}
-                    disabled={formData.isFree}
+                    disabled={formData.isFree || formData.category === 'LOST_FOUND'}
                     placeholder="0,00"
                     className="w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all disabled:bg-gray-100 disabled:text-gray-500"
                   />

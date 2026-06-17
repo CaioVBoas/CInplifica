@@ -420,7 +420,7 @@ const ListingDetails: React.FC = () => {
               className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-red-600 px-4 py-3 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-600"
             >
               {contactLoading ? <Loader2 className="animate-spin" size={18} /> : <MessageSquare size={18} />}
-              Iniciar negociação
+              Iniciar bate-papo
             </button>
           )}
         </aside>

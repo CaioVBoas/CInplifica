@@ -309,7 +309,7 @@ const ChatPage: React.FC = () => {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm font-semibold text-green-700">
                     <CheckCircle size={18} />
-                    Negociação concluída
+                    Bate-papo concluído
                     {activeConversation.completedAt && (
                       <span className="font-normal text-gray-500">
                         em {new Date(activeConversation.completedAt).toLocaleDateString('pt-BR')}
@@ -357,7 +357,7 @@ const ChatPage: React.FC = () => {
               ) : (
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <p className="text-sm text-gray-600">
-                    Quando a negociação terminar, conclua a conversa para liberar a avaliação.
+                    Quando a conversa terminar, conclua o bate-papo para liberar a avaliação.
                   </p>
                   <button
                     type="button"
@@ -366,7 +366,7 @@ const ChatPage: React.FC = () => {
                     className="inline-flex items-center justify-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-300"
                   >
                     {completingConversation ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle size={16} />}
-                    Concluir negociação
+                    Concluir bate-papo
                   </button>
                 </div>
               )}
@@ -435,7 +435,7 @@ const ChatPage: React.FC = () => {
             </div>
             <h3 className="text-2xl font-bold text-gray-800 mb-2">Sua Caixa de Entrada</h3>
             <p className="text-center max-w-xs text-sm leading-relaxed">
-              Selecione uma conversa ao lado para negociar itens ou tirar dúvidas acadêmicas com seus colegas.
+              Selecione uma conversa ao lado para conversar sobre itens ou tirar dúvidas acadêmicas com seus colegas.
             </p>
           </div>
         )}

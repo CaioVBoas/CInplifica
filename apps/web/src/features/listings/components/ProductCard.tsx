@@ -56,7 +56,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing }) => {
       navigate('/chat', { state: { conversationId: conversation.id } });
     } catch (err) {
       console.error(err);
-      setContactError('Não foi possível iniciar a negociação.');
+      setContactError('Não foi possível iniciar o bate-papo.');
     } finally {
       setContactLoading(false);
     }
@@ -119,7 +119,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ listing }) => {
           className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-red-600 px-3 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-600"
         >
           {contactLoading ? <Loader2 className="animate-spin" size={16} /> : <MessageSquare size={16} />}
-          {isOwnListing ? 'Este anúncio é seu' : 'Iniciar negociação'}
+          {isOwnListing ? 'Este anúncio é seu' : 'Iniciar bate-papo'}
         </button>
       </div>
     </div>
