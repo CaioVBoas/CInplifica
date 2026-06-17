@@ -2,6 +2,76 @@
 
 O CInplifica é uma plataforma dedicada à comunidade do CIn-UFPE para organizar anúncios, vendas, achados e perdidos, e comunicações acadêmicas.
 
+## Como rodar localmente
+
+Pré-requisitos:
+
+- Node.js instalado
+- pnpm instalado
+- Docker Desktop aberto
+
+1. Instale as dependências:
+
+```bash
+pnpm install
+```
+
+2. Crie o arquivo de ambiente da API:
+
+```bash
+cp apps/api/.env.example apps/api/.env
+```
+
+No Windows PowerShell, se `cp` não funcionar:
+
+```powershell
+Copy-Item apps/api/.env.example apps/api/.env
+```
+
+3. Suba o banco de dados:
+
+```bash
+docker compose up -d
+```
+
+4. Gere o Prisma Client e aplique as migrations:
+
+```bash
+pnpm --filter api prisma:generate
+pnpm --filter api prisma:migrate
+```
+
+5. Popule o banco com dados de teste:
+
+```bash
+pnpm db:seed
+```
+
+6. Rode a API em um terminal:
+
+```bash
+pnpm api
+```
+
+7. Rode o front-end em outro terminal:
+
+```bash
+pnpm web
+```
+
+Depois acesse:
+
+- Front-end: http://localhost:5173
+- API: http://localhost:3011
+- Health check: http://localhost:3011/health
+
+Para login local sem Google, use o endpoint de mock login:
+
+```text
+http://localhost:3011/api/auth/mock-login
+http://localhost:3011/api/auth/mock-login?email=admin@cin.ufpe.br
+```
+
 ## Dados de desenvolvimento
 
 Para popular o banco local com dados mockados:
