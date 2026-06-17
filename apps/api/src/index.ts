@@ -14,6 +14,7 @@ import auditLogRoutes from './routes/audit-log.routes';
 import reviewRoutes from './routes/review.routes';
 import notificationRoutes from './routes/notification.routes';
 import interestRoutes from './routes/interest.routes';
+import forumRoutes from './routes/forum.routes';
 import conversationService from './services/conversation.service';
 import { env } from './config/env';
 
@@ -48,6 +49,7 @@ app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/interests', interestRoutes);
+app.use('/api/forum', forumRoutes);
 
 // Basic health check
 app.get('/health', (_req: Request, res: Response) => {
