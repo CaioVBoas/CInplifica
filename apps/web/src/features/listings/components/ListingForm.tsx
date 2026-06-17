@@ -24,13 +24,29 @@ import { listingsService } from '../services/listingsService';
 const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
-const statusOptions: { value: ListingStatus; label: string }[] = [
-  { value: 'ACTIVE', label: 'Ativo' },
-  { value: 'SOLD', label: 'Vendido' },
-  { value: 'FINALIZED', label: 'Finalizado' },
-  { value: 'RETURNED', label: 'Devolvido' },
-  { value: 'INACTIVE', label: 'Inativo' },
-];
+const statusOptionsByCategory: Record<ListingCategory, { value: ListingStatus; label: string }[]> = {
+  SALE: [
+    { value: 'ACTIVE', label: 'Ativo' },
+    { value: 'SOLD', label: 'Vendido' },
+    { value: 'INACTIVE', label: 'Inativo' },
+  ],
+  LOST_FOUND: [
+    { value: 'ACTIVE', label: 'Ativo' },
+    { value: 'RETURNED', label: 'Devolvido' },
+    { value: 'INACTIVE', label: 'Inativo' },
+  ],
+  ACADEMIC: [
+    { value: 'ACTIVE', label: 'Ativo' },
+    { value: 'FINALIZED', label: 'Finalizado' },
+    { value: 'INACTIVE', label: 'Inativo' },
+  ],
+};
+
+const getStatusOptionsForCategory = (category: ListingCategory) => statusOptionsByCategory[category];
+
+const getSafeStatusForCategory = (status: ListingStatus, category: ListingCategory): ListingStatus => {
+  return getStatusOptionsForCategory(category).some((option) => option.value === status) ? status : 'ACTIVE';
+};
 
 const lostFoundStatusOptions: { value: LostFoundStatus; label: string }[] = [
   { value: 'LOST', label: 'Perdido' },
@@ -85,7 +101,7 @@ const ListingForm: React.FC = () => {
           description: listing.description,
           price: listing.price === null ? '' : String(listing.price),
           category: listing.category,
-          status: listing.status,
+          status: getSafeStatusForCategory(listing.status, listing.category),
           isFree: listing.isFree,
           lostFoundLocation: listing.lostFoundLocation ?? '',
           lostFoundOccurredAt: toDateTimeInputValue(listing.lostFoundOccurredAt),
@@ -134,7 +150,14 @@ const ListingForm: React.FC = () => {
       const payload = {
         title: formData.title,
         description: formData.description,
-        price: formData.isFree ? 0 : formData.price ? parseFloat(formData.price) : null,
+        price:
+          formData.category === 'LOST_FOUND'
+            ? null
+            : formData.isFree
+              ? 0
+              : formData.price
+                ? parseFloat(formData.price)
+                : null,
         category: formData.category,
         imageUrl,
         status: formData.status,
@@ -171,6 +194,8 @@ const ListingForm: React.FC = () => {
       setFormData((prev) => ({
         ...prev,
         category,
+        price: category === 'LOST_FOUND' ? '' : prev.price,
+        status: getSafeStatusForCategory(prev.status, category),
         isFree: category === 'ACADEMIC' ? prev.isFree : false,
       }));
       return;
@@ -330,7 +355,7 @@ const ListingForm: React.FC = () => {
                     onChange={handleChange}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all bg-white cursor-pointer"
                   >
-                    {statusOptions.map((status) => (
+                    {getStatusOptionsForCategory(formData.category).map((status) => (
                       <option key={status.value} value={status.value}>
                         {status.label}
                       </option>

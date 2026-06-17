@@ -51,7 +51,7 @@ export interface ListListingsFilters {
 
 export class ListingService {
   async getAll(category?: string, search?: string, page = 1, limit = 12) {
-    return this.list({ category, search }, page, limit);
+    return this.list({ category, search, status: 'ACTIVE' }, page, limit);
   }
 
   async getMine(authorId: string, category?: string, search?: string, status?: string, page = 1, limit = 12) {

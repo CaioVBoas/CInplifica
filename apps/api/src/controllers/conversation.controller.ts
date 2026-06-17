@@ -87,7 +87,7 @@ export class ConversationController {
       const conversation = await conversationService.completeConversation(id, currentUserId);
       res.json(conversation);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Falha ao concluir negociação.';
+      const message = error instanceof Error ? error.message : 'Falha ao concluir bate-papo.';
       res.status(getErrorStatus(message)).json({ error: message });
     }
   }

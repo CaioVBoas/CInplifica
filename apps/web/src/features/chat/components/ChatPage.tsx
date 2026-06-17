@@ -159,7 +159,7 @@ const ChatPage: React.FC = () => {
       updateConversationState(updatedConversation);
     } catch (error) {
       console.error(error);
-      setActionError(error instanceof Error ? error.message : 'Não foi possível concluir a negociação.');
+      setActionError(error instanceof Error ? error.message : 'Não foi possível concluir o bate-papo.');
     } finally {
       setCompletingConversation(false);
     }
@@ -340,7 +340,7 @@ const ChatPage: React.FC = () => {
                         type="text"
                         value={reviewComment}
                         onChange={(event) => setReviewComment(event.target.value)}
-                        placeholder="Comentário opcional sobre a negociação"
+                        placeholder="Comentário opcional sobre o bate-papo"
                         className="rounded-md border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       />
                       <button

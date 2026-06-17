@@ -78,7 +78,7 @@ export class ConversationService {
       }
 
       if (!uniqueUserIds.includes(listing.authorId)) {
-        throw new Error('A negociação deve incluir o autor do anúncio.');
+        throw new Error('A conversa deve incluir o autor do anúncio.');
       }
     }
 
@@ -175,7 +175,7 @@ export class ConversationService {
     }
 
     if (!conversation.users.some((participant) => participant.id === currentUserId)) {
-      throw new Error('Apenas participantes podem concluir esta negociação.');
+      throw new Error('Apenas participantes podem concluir este bate-papo.');
     }
 
     if (conversation.status === 'COMPLETED') {

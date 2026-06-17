@@ -197,6 +197,12 @@ const ListingDetails: React.FC = () => {
   }
 
   const isOwnListing = user?.id === listing.author.id;
+  const ownerStatusActions: Array<{ status: Listing['status']; label: string }> =
+    listing.category === 'SALE'
+      ? [{ status: 'SOLD', label: 'Vendido' }]
+      : listing.category === 'LOST_FOUND'
+        ? [{ status: 'RETURNED', label: 'Devolvido' }]
+        : [{ status: 'FINALIZED', label: 'Finalizado' }];
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -372,34 +378,23 @@ const ListingDetails: React.FC = () => {
                 Editar anúncio
               </Link>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleStatusChange('SOLD')}
-                  disabled={Boolean(actionLoading) || listing.status === 'SOLD'}
-                  className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {actionLoading === 'SOLD' ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle2 size={16} />}
-                  Vendido
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleStatusChange('FINALIZED')}
-                  disabled={Boolean(actionLoading) || listing.status === 'FINALIZED'}
-                  className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {actionLoading === 'FINALIZED' ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle2 size={16} />}
-                  Finalizado
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleStatusChange('RETURNED')}
-                  disabled={Boolean(actionLoading) || listing.status === 'RETURNED'}
-                  className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {actionLoading === 'RETURNED' ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle2 size={16} />}
-                  Devolvido
-                </button>
+              <div className="grid grid-cols-1 gap-2">
+                {ownerStatusActions.map((action) => (
+                  <button
+                    key={action.status}
+                    type="button"
+                    onClick={() => handleStatusChange(action.status)}
+                    disabled={Boolean(actionLoading) || listing.status === action.status}
+                    className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {actionLoading === action.status ? (
+                      <Loader2 className="animate-spin" size={16} />
+                    ) : (
+                      <CheckCircle2 size={16} />
+                    )}
+                    {action.label}
+                  </button>
+                ))}
               </div>
 
               <button

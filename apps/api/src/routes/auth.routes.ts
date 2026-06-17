@@ -7,6 +7,12 @@ import auditLogService from '../services/audit-log.service';
 
 const router = Router();
 
+const googleLoginOptions = {
+  scope: ['profile', 'email'],
+  prompt: 'select_account',
+  hd: env.allowedEmailDomain,
+};
+
 // Initiate SSO Login
 router.get('/login', (req, res, next) => {
   if (!isGoogleSsoConfigured) {
@@ -15,7 +21,7 @@ router.get('/login', (req, res, next) => {
     });
   }
 
-  return passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+  return passport.authenticate('google', googleLoginOptions)(req, res, next);
 });
 
 // Mock Login for Development

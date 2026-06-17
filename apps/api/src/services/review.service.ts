@@ -58,12 +58,12 @@ export class ReviewService {
     }
 
     if (conversation.status !== 'COMPLETED') {
-      throw new Error('A avaliação só é liberada após a conclusão da negociação.');
+      throw new Error('A avaliação só é liberada após a conclusão do bate-papo.');
     }
 
     const participantIds = conversation.users.map((user) => user.id);
     if (!participantIds.includes(data.reviewerId) || !participantIds.includes(data.reviewedUserId)) {
-      throw new Error('Apenas participantes da negociação podem avaliar.');
+      throw new Error('Apenas participantes do bate-papo podem avaliar.');
     }
 
     return prisma.review.create({

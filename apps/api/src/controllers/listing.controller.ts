@@ -7,6 +7,11 @@ import notificationService from '../services/notification.service';
 const ALLOWED_CATEGORIES = ['SALE', 'LOST_FOUND', 'ACADEMIC'];
 const ALLOWED_STATUSES = ['ACTIVE', 'INACTIVE', 'SOLD', 'FINALIZED', 'RETURNED'];
 const ALLOWED_LOST_FOUND_STATUSES = ['LOST', 'FOUND', 'WITH_FINDER', 'RETURNED'];
+const STATUSES_BY_CATEGORY: Record<string, string[]> = {
+  SALE: ['ACTIVE', 'INACTIVE', 'SOLD'],
+  LOST_FOUND: ['ACTIVE', 'INACTIVE', 'RETURNED'],
+  ACADEMIC: ['ACTIVE', 'INACTIVE', 'FINALIZED'],
+};
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 12;
 const MAX_LIMIT = 50;
@@ -85,6 +90,10 @@ const normalizeLostFoundStatus = (value: unknown) => {
   return String(value);
 };
 
+const getAllowedStatusesForCategory = (category: string) => {
+  return STATUSES_BY_CATEGORY[category] ?? ALLOWED_STATUSES;
+};
+
 const appendCategoryFields = (
   data: Record<string, unknown>,
   body: Record<string, unknown>,
@@ -120,6 +129,9 @@ const appendCategoryFields = (
   }
 
   if (category === 'LOST_FOUND') {
+    data.price = null;
+    data.isFree = false;
+
     if (body.lostFoundLocation !== undefined || includeDefaults) {
       data.lostFoundLocation = normalizeNullableString(body.lostFoundLocation);
     }
@@ -217,7 +229,7 @@ export class ListingController {
       const data: Record<string, unknown> = {
         title: normalizedTitle,
         description: normalizedDescription,
-        price: normalizePrice(price),
+        price: category === 'LOST_FOUND' ? null : normalizePrice(price),
         category,
         imageUrl: imageUrl === undefined ? undefined : normalizeNullableString(imageUrl),
         authorId,
@@ -256,6 +268,8 @@ export class ListingController {
       }
 
       const updateData: Record<string, unknown> = {};
+      const nextCategory = req.body.category ?? existingListing.category;
+      const categoryChanged = req.body.category !== undefined && req.body.category !== existingListing.category;
 
       if (req.body.title !== undefined) {
         const title = normalizeString(req.body.title);
@@ -270,11 +284,8 @@ export class ListingController {
       }
 
       if (req.body.price !== undefined) {
-        updateData.price = normalizePrice(req.body.price);
+        updateData.price = nextCategory === 'LOST_FOUND' ? null : normalizePrice(req.body.price);
       }
-
-      const nextCategory = req.body.category ?? existingListing.category;
-      const categoryChanged = req.body.category !== undefined && req.body.category !== existingListing.category;
 
       if (req.body.category !== undefined) {
         if (!ALLOWED_CATEGORIES.includes(req.body.category)) {
@@ -283,11 +294,14 @@ export class ListingController {
         updateData.category = req.body.category;
       }
 
+      const allowedStatusesForNextCategory = getAllowedStatusesForCategory(nextCategory);
       if (req.body.status !== undefined) {
-        if (!ALLOWED_STATUSES.includes(req.body.status)) {
+        if (!allowedStatusesForNextCategory.includes(req.body.status)) {
           return res.status(400).json({ error: 'Status inválido.' });
         }
         updateData.status = req.body.status;
+      } else if (!allowedStatusesForNextCategory.includes(existingListing.status)) {
+        updateData.status = 'ACTIVE';
       }
 
       if (req.body.imageUrl !== undefined) {

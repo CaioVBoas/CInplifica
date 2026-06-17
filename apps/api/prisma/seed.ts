@@ -397,12 +397,12 @@ async function seedConversations(userIds: Record<string, string>) {
     },
     update: {
       rating: 5,
-      comment: 'Negociação tranquila.',
+      comment: 'Conversa tranquila.',
       listingId: ids.listings.calculator,
     },
     create: {
       rating: 5,
-      comment: 'Negociação tranquila.',
+      comment: 'Conversa tranquila.',
       reviewerId: userIds.joao,
       reviewedUserId: userIds.test,
       conversationId: calculatorConversation.id,
@@ -631,7 +631,7 @@ async function seedForum(userIds: Record<string, string>) {
     {
       id: ids.forumTopics.marketplaceTips,
       title: 'Boas práticas para vender no mural',
-      content: 'Quais informações vocês colocam no anúncio para evitar dúvidas e fechar uma negociação mais rápido?',
+      content: 'Quais informações vocês colocam no anúncio para evitar dúvidas e fechar uma conversa mais rápido?',
       authorId: userIds.maria,
       createdAt: daysAgo(6),
     },
@@ -664,7 +664,7 @@ async function seedForum(userIds: Record<string, string>) {
   const answers = [
     {
       id: ids.forumAnswers.marketplaceTips1,
-      content: 'Coloco foto clara, preço, estado do item, local de entrega e se aceito negociação. Isso reduz bastante as mensagens repetidas.',
+      content: 'Coloco foto clara, preço, estado do item, local de entrega e se estou aberto a conversar. Isso reduz bastante as mensagens repetidas.',
       topicId: ids.forumTopics.marketplaceTips,
       authorId: userIds.joao,
       createdAt: daysAgo(5),
