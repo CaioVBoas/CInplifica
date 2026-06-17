@@ -7,10 +7,10 @@ const router = Router();
 router.use(authMiddleware);
 router.use(requireRole(['ADMIN', 'MODERATOR']));
 
-router.get('/actions', moderationController.listActions);
-router.post('/reports/:id/approve', moderationController.approveReport);
-router.post('/reports/:id/reject', moderationController.rejectReport);
-router.post('/content/remove', moderationController.removeContent);
-router.post('/users/:id/suspend', moderationController.suspendUser);
+router.get('/actions', moderationController.listActions.bind(moderationController));
+router.post('/reports/:id/approve', moderationController.approveReport.bind(moderationController));
+router.post('/reports/:id/reject', moderationController.rejectReport.bind(moderationController));
+router.post('/content/remove', moderationController.removeContent.bind(moderationController));
+router.post('/users/:id/suspend', moderationController.suspendUser.bind(moderationController));
 
 export default router;

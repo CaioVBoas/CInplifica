@@ -7,6 +7,6 @@ const router = Router();
 router.use(authMiddleware);
 router.use(requireRole(['ADMIN', 'MODERATOR']));
 
-router.get('/', auditLogController.list);
+router.get('/', auditLogController.list.bind(auditLogController));
 
 export default router;

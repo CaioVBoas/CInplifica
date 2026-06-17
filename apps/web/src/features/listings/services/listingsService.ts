@@ -46,6 +46,38 @@ export const listingsService = {
     return response.json();
   },
 
+  async fetchMyListings(
+    category?: ListingCategory,
+    status?: ListingStatus,
+    search?: string,
+    page = 1,
+    limit = 10,
+  ): Promise<PaginatedListingsResponse> {
+    const token = localStorage.getItem('token');
+    const url = new URL(`${API_BASE_URL}/listings/mine`, window.location.origin);
+    if (category) {
+      url.searchParams.append('category', category);
+    }
+    if (status) {
+      url.searchParams.append('status', status);
+    }
+    if (search) {
+      url.searchParams.append('search', search);
+    }
+    url.searchParams.append('page', String(page));
+    url.searchParams.append('limit', String(limit));
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch my listings');
+    }
+    return response.json();
+  },
+
   async fetchListingById(id: string): Promise<Listing> {
     const response = await fetch(`${API_BASE_URL}/listings/${id}`);
     if (!response.ok) {

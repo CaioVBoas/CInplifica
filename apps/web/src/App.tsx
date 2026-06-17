@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation, Link 
 import ListingsFeed from './features/listings/components/ListingsFeed';
 import ListingForm from './features/listings/components/ListingForm';
 import ListingDetails from './features/listings/components/ListingDetails';
+import MyListingsPage from './features/listings/components/MyListingsPage';
 import ChatPage from './features/chat/components/ChatPage';
 import ModerationDashboard from './features/moderation/components/ModerationDashboard';
 import AlertsPage from './features/notifications/components/AlertsPage';
@@ -10,10 +11,52 @@ import ForumPage from './features/forum/components/ForumPage';
 import NewTopicPage from './features/forum/components/NewTopicPage';
 import TopicPage from './features/forum/components/TopicPage';
 import { AuthProvider, useAuth } from './shared/context/AuthContext';
-import { LogIn, LogOut, MessageSquare, Plus, ShieldCheck, Bell, ChevronDown, Hash } from 'lucide-react';
+import { LogIn, LogOut, MessageSquare, Plus, ShieldCheck, Bell, ChevronDown, Hash, Package } from 'lucide-react';
 import { notificationService } from './features/notifications/services/notificationService';
 import { chatService } from './features/chat/services/chatService';
 import { io } from 'socket.io-client';
+
+const getUserInitial = (name: string) => name.trim().charAt(0).toUpperCase() || '?';
+
+interface UserAvatarProps {
+  name: string;
+  picture?: string;
+  sizeClass: string;
+  fallbackClassName: string;
+  imageClassName?: string;
+}
+
+const UserAvatar: React.FC<UserAvatarProps> = ({
+  name,
+  picture,
+  sizeClass,
+  fallbackClassName,
+  imageClassName = '',
+}) => {
+  const [imageFailed, setImageFailed] = React.useState(false);
+
+  React.useEffect(() => {
+    setImageFailed(false);
+  }, [picture]);
+
+  if (picture && !imageFailed) {
+    return (
+      <img
+        src={picture}
+        alt={name}
+        referrerPolicy="no-referrer"
+        onError={() => setImageFailed(true)}
+        className={`${sizeClass} rounded-full object-cover ${imageClassName}`}
+      />
+    );
+  }
+
+  return (
+    <div className={`${sizeClass} rounded-full flex items-center justify-center font-semibold ${fallbackClassName}`}>
+      {getUserInitial(name)}
+    </div>
+  );
+};
 
 const Header: React.FC = () => {
   const { user, token, isAuthenticated, logout } = useAuth();
@@ -82,7 +125,7 @@ const Header: React.FC = () => {
             <div className="flex items-center gap-2 sm:gap-4">
               <Link 
                 to="/listings/new"
-                className="flex items-center gap-2 bg-green-600 text-white px-3 py-1.5 rounded-md text-sm font-medium hover:bg-green-700 transition-colors shadow-sm"
+                className="flex items-center gap-2 bg-white text-red-600 px-3 py-1.5 rounded-md text-sm font-semibold hover:bg-red-50 transition-colors shadow-sm"
               >
                 <Plus size={18} />
                 <span className="hidden md:inline">Anunciar</span>
@@ -135,13 +178,13 @@ const Header: React.FC = () => {
                   onClick={() => setMenuOpen(o => !o)}
                   className="flex items-center gap-2 rounded-full pl-1 pr-2 py-1 hover:bg-white/10 transition-colors"
                 >
-                  {user.picture ? (
-                    <img src={user.picture} alt={user.name} className="w-8 h-8 rounded-full object-cover ring-2 ring-white/40" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white font-semibold text-sm">
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                  <UserAvatar
+                    name={user.name}
+                    picture={user.picture}
+                    sizeClass="w-8 h-8"
+                    fallbackClassName="bg-white/20 text-white text-sm ring-2 ring-white/40"
+                    imageClassName="ring-2 ring-white/40"
+                  />
                   <span className="hidden sm:inline text-sm font-medium text-white">{user.name.split(' ')[0]}</span>
                   <ChevronDown size={14} className={`text-white/80 transition-transform ${menuOpen ? 'rotate-180' : ''}`} />
                 </button>
@@ -149,18 +192,25 @@ const Header: React.FC = () => {
                 {menuOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg ring-1 ring-black/5 py-1 z-50">
                     <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
-                      {user.picture ? (
-                        <img src={user.picture} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-semibold">
-                          {user.name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
+                      <UserAvatar
+                        name={user.name}
+                        picture={user.picture}
+                        sizeClass="w-10 h-10"
+                        fallbackClassName="bg-red-100 text-red-600"
+                      />
                       <div className="min-w-0">
                         <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
                         <p className="text-xs text-gray-500 truncate">{user.email}</p>
                       </div>
                     </div>
+                    <Link
+                      to="/meus-anuncios"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                    >
+                      <Package size={15} />
+                      Meus anúncios
+                    </Link>
                     <button
                       onClick={() => { setMenuOpen(false); logout(); }}
                       className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
@@ -330,6 +380,7 @@ const AppContent: React.FC = () => {
         <Route path="/forum" element={<ProtectedRoute><ForumPage /></ProtectedRoute>} />
         <Route path="/forum/novo" element={<ProtectedRoute><NewTopicPage /></ProtectedRoute>} />
         <Route path="/forum/:id" element={<ProtectedRoute><TopicPage /></ProtectedRoute>} />
+        <Route path="/meus-anuncios" element={<ProtectedRoute><MyListingsPage /></ProtectedRoute>} />
         <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
         <Route path="/alerts" element={<ProtectedRoute><AlertsPage /></ProtectedRoute>} />
         <Route path="/moderation" element={<ProtectedRoute requiredRoles={['ADMIN', 'MODERATOR']}><ModerationDashboard /></ProtectedRoute>} />

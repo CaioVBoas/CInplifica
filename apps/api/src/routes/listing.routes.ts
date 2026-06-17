@@ -5,6 +5,7 @@ import { authMiddleware } from '../middleware/auth.middleware';
 const router = Router();
 
 router.get('/', listingController.getAll);
+router.get('/mine', authMiddleware, listingController.getMine);
 router.post('/upload-image', authMiddleware, listingController.uploadImage);
 router.get('/:id', listingController.getById);
 router.post('/', authMiddleware, listingController.create);

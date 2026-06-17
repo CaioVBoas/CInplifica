@@ -42,18 +42,41 @@ export interface UpdateListingData {
   academicTerm?: string | null;
 }
 
+export interface ListListingsFilters {
+  authorId?: string;
+  category?: string;
+  search?: string;
+  status?: string;
+}
+
 export class ListingService {
   async getAll(category?: string, search?: string, page = 1, limit = 12) {
+    return this.list({ category, search }, page, limit);
+  }
+
+  async getMine(authorId: string, category?: string, search?: string, status?: string, page = 1, limit = 12) {
+    return this.list({ authorId, category, search, status }, page, limit);
+  }
+
+  private async list(filters: ListListingsFilters, page = 1, limit = 12) {
     const where: any = {};
     
-    if (category) {
-      where.category = category;
+    if (filters.authorId) {
+      where.authorId = filters.authorId;
+    }
+
+    if (filters.category) {
+      where.category = filters.category;
+    }
+
+    if (filters.status) {
+      where.status = filters.status;
     }
     
-    if (search) {
+    if (filters.search) {
       where.OR = [
-        { title: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
+        { title: { contains: filters.search, mode: 'insensitive' } },
+        { description: { contains: filters.search, mode: 'insensitive' } },
       ];
     }
 
