@@ -94,7 +94,7 @@ const Header: React.FC = () => {
 
   React.useEffect(() => {
     if (!token) return;
-    const socket = io('http://localhost:3011', {
+    const socket = io(import.meta.env.VITE_SOCKET_URL || window.location.origin, {
       auth: { token },
       transports: ['websocket'],
     });

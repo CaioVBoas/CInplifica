@@ -12,15 +12,23 @@ const parseIntegerEnv = (name: string, fallback: number) => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 };
 
+// On Render, the public URL of the service is injected as RENDER_EXTERNAL_URL.
+// In a single-origin deploy the frontend and the OAuth callback live on this URL,
+// so we derive both from it when they are not explicitly provided.
+const renderExternalUrl = (process.env.RENDER_EXTERNAL_URL || '').replace(/\/$/, '');
+
 export const env = {
   nodeEnv: getEnv('NODE_ENV', 'development'),
   port: getEnv('PORT', '3011'),
-  frontendUrl: getEnv('FRONTEND_URL', 'http://localhost:5175'),
+  frontendUrl: getEnv('FRONTEND_URL', renderExternalUrl || 'http://localhost:5175'),
   jwtSecret: getEnv('JWT_SECRET'),
   databaseUrl: getEnv('DATABASE_URL'),
   googleClientId: getEnv('GOOGLE_CLIENT_ID'),
   googleClientSecret: getEnv('GOOGLE_CLIENT_SECRET'),
-  googleCallbackUrl: getEnv('GOOGLE_CALLBACK_URL', 'http://localhost:3011/api/auth/callback'),
+  googleCallbackUrl: getEnv(
+    'GOOGLE_CALLBACK_URL',
+    renderExternalUrl ? `${renderExternalUrl}/api/auth/callback` : 'http://localhost:3011/api/auth/callback'
+  ),
   allowedEmailDomain: getEnv('ALLOWED_EMAIL_DOMAIN', 'cin.ufpe.br'),
   uploadRoot: getEnv('UPLOAD_ROOT', 'uploads'),
   maxUploadBytes: parseIntegerEnv('MAX_UPLOAD_BYTES', 5 * 1024 * 1024),

@@ -1,4 +1,4 @@
-import express, { type Request, type Response } from 'express';
+import express, { type Request, type Response, type NextFunction } from 'express';
 import cors from 'cors';
 import path from 'path';
 import { createServer } from 'http';
@@ -16,7 +16,7 @@ import notificationRoutes from './routes/notification.routes';
 import interestRoutes from './routes/interest.routes';
 import forumRoutes from './routes/forum.routes';
 import conversationService from './services/conversation.service';
-import { env } from './config/env';
+import { env, isProduction } from './config/env';
 
 type Participant = {
   id: string;
@@ -55,6 +55,19 @@ app.use('/api/forum', forumRoutes);
 app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Single-origin deploy: serve the built frontend (apps/web/dist) and let the
+// client-side router handle every non-API/non-uploads route.
+if (isProduction) {
+  const webDist = path.resolve(__dirname, '../../web/dist');
+  app.use(express.static(webDist));
+  app.get('*', (req: Request, res: Response, next: NextFunction) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) {
+      return next();
+    }
+    return res.sendFile(path.join(webDist, 'index.html'));
+  });
+}
 
 io.use(async (socket, next) => {
   try {
